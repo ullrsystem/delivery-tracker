@@ -532,11 +532,6 @@
             }
         }
         
-        // Camera button click
-        document.getElementById('cameraBtn').addEventListener('click', () => {
-            document.getElementById('camera-input').click();
-        });
-        
         // Handle photo capture
         async function handlePhotoCapture(e) {
             const file = e.target.files[0];
@@ -572,7 +567,29 @@
             }
         }
         
-        document.getElementById('camera-input').addEventListener('change', handlePhotoCapture);
+        // Camera button click - recreate input each time for reliability
+        document.getElementById('cameraBtn').addEventListener('click', () => {
+            // Remove old input if exists
+            const oldInput = document.getElementById('camera-input');
+            if (oldInput) {
+                oldInput.remove();
+            }
+            
+            // Create fresh input
+            const newInput = document.createElement('input');
+            newInput.type = 'file';
+            newInput.id = 'camera-input';
+            newInput.accept = 'image/*';
+            newInput.capture = 'environment';
+            newInput.style.display = 'none';
+            newInput.addEventListener('change', handlePhotoCapture);
+            
+            // Add to camera section
+            document.querySelector('.camera-section').appendChild(newInput);
+            
+            // Trigger it
+            newInput.click();
+        });
         
         // Check if form is complete
         function checkFormComplete() {
@@ -620,15 +637,7 @@
             document.getElementById('previewSection').classList.add('hidden');
             document.getElementById('gpsInfo').classList.add('hidden');
             
-            // Properly reset camera input for mobile browsers
-            const cameraInput = document.getElementById('camera-input');
-            cameraInput.value = '';
-            // Force recreation of the input element to fully reset it
-            const newInput = cameraInput.cloneNode(true);
-            cameraInput.parentNode.replaceChild(newInput, cameraInput);
-            // Re-attach event listener to new input
-            newInput.addEventListener('change', handlePhotoCapture);
-            
+            // Reset current delivery object
             currentDelivery = {
                 orderNumber: '',
                 photo: null,

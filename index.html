@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ullr System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink:       #0f1117;
+            --ink-mid:   #3d4252;
+            --ink-light: #7c8296;
+            --border:    #e2e5ef;
+            --surface:   #f7f8fc;
+            --white:     #ffffff;
+            --accent:    #1a56db;
+            --accent-dk: #1344b4;
+            --green:     #0d9e6e;
+            --green-dk:  #0a7d57;
+            --red:       #e02d2d;
+            --amber:     #b45309;
+            --radius:    12px;
+            --radius-sm: 8px;
+            --shadow-sm: 0 1px 4px rgba(15,17,23,0.08);
+            --shadow-md: 0 4px 20px rgba(15,17,23,0.12);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Barlow', -apple-system, sans-serif;
+            background: #eef0f6;
+            min-height: 100vh;
+            padding: 0 0 32px;
+            color: var(--ink);
+        }
+
+        /* ── App header bar ── */
+        .app-header {
+            background: var(--ink);
+            padding: 0 20px;
+            display: flex;
+            align-items: stretch;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 2px solid var(--accent);
+        }
+        .app-header-logo-wrap {
+            display: flex;
+            align-items: center;
+            padding: 13px 18px 13px 0;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            margin-right: 16px;
+        }
+        .app-header-logo-wrap svg {
+            width: 26px;
+            height: 26px;
+            opacity: 0.82;
+        }
+        .app-header-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1;
+            padding: 11px 0;
+        }
+        .app-header-text h1 {
+            color: white;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 21px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+        .app-header-text .subtitle {
+            color: rgba(255,255,255,0.35);
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .header-count-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            padding-left: 16px;
+            border-left: 1px solid rgba(255,255,255,0.08);
+        }
+        .header-count-badge .num {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 32px;
+            font-weight: 900;
+            color: #4d80ff;
+            line-height: 1;
+        }
+        .header-count-badge .lbl {
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.25);
+            margin-top: 2px;
+            text-align: right;
+        }
+
+        /* ── Status bar ── */
+        .status-bar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .google-connected { color: var(--green); display:flex; align-items:center; gap:6px; }
+        .google-disconnected { color: var(--ink-light); display:flex; align-items:center; gap:6px; }
+        .google-connected::before { content:''; width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block; }
+        .google-disconnected::before { content:''; width:7px; height:7px; border-radius:50%; background:#d1d5db; display:inline-block; }
+
+        /* ── Stats card — hidden, count moved to header ── */
+        .stats-card { display: none !important; }
+
+        /* ── Main container ── */
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        /* ── Form card ── */
+        .form-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section { margin-bottom: 16px; }
+        .section label {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--ink-light);
+            margin-bottom: 7px;
+        }
+        .section input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: 'Barlow', inherit;
+            font-size: 15px;
+            color: var(--ink);
+            background: var(--surface);
+            transition: border-color 0.15s, box-shadow 0.15s;
+            outline: none;
+        }
+        .section input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(26,86,219,0.12);
+            background: white;
+        }
+
+        /* ── Camera section ── */
+        .camera-section { margin-bottom: 16px; }
+        #cameraBtn {
+            width: 100%;
+            padding: 13px;
+            background: var(--surface);
+            border: 1.5px dashed var(--border);
+            border-radius: var(--radius-sm);
+            font-family: 'Barlow', inherit;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink-mid);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        #cameraBtn:hover { border-color: var(--accent); color: var(--accent); background: #f0f4ff; }
+        #camera-input { display: none; }
+
+        .preview { margin-top: 12px; border-radius: var(--radius-sm); overflow: hidden; }
+        .preview img { width: 100%; max-height: 220px; object-fit: cover; display: block; }
+        .hidden { display: none !important; }
+
+        .gps-info {
+            margin-top: 10px;
+            padding: 9px 12px;
+            background: #f0fdf8;
+            border: 1px solid #a7f3d0;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--green-dk);
+        }
+
+        /* ── Save button ── */
+        #saveBtn {
+            width: 100%;
+            padding: 15px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 19px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            margin-top: 4px;
+        }
+        #saveBtn:hover:not(:disabled) { background: var(--accent-dk); }
+        #saveBtn:active:not(:disabled) { transform: scale(0.99); }
+        #saveBtn:disabled { background: #c7d2fe; cursor: not-allowed; }
+
+        /* ── Options button ── */
+        .action-buttons { margin-top: 10px; }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: 'Barlow', inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--ink-mid);
+            border: 1.5px solid var(--border);
+        }
+        .btn-secondary:hover { background: #eef0f6; border-color: #c8ccd8; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: var(--accent-dk); }
+        .btn-drive { background: #1a73e8; color: white; }
+        .btn-drive:hover { background: #1558b0; }
+        .btn-success { background: var(--green); color: white; }
+        .btn-success:hover { background: var(--green-dk); }
+
+        /* ── Messages ── */
+        .success-message, .error-message {
+            display: none;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .success-message { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+        .error-message { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+        /* ── Progress ── */
+        .upload-progress {
+            display: none;
+            padding: 14px 16px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-dk);
+        }
+        .progress-bar {
+            background: #dbeafe;
+            border-radius: 99px;
+            height: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 99px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* ── Options popup ── */
+        #optionsOverlay > div {
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            width: 100%;
+            max-width: 480px;
+        }
+        #optionsCloseBtn {
+            background: var(--surface);
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: var(--ink-light);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #optionsCloseBtn:hover { background: var(--border); }
+        .options-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 19px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--ink);
+        }
+
+        /* ── Deliveries list ── */
+        .deliveries-list {
+            background: white;
+            border-radius: var(--radius);
+            margin-top: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .delivery-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .delivery-item:last-child { border-bottom: none; }
+        .delivery-order { font-weight: 700; font-size: 14px; color: var(--ink); }
+        .delivery-time { font-size: 12px; color: var(--ink-light); margin-top: 2px; font-family: 'Barlow Condensed', monospace; letter-spacing: 0.3px; }
+        .delivery-status { font-size: 18px; }
+
+        /* ── Access gate ── */
+        #accessGate {
+            position: fixed; inset: 0; z-index: 9999;
+            background: var(--ink);
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .gate-inner {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+        .gate-inner svg { width: 48px; height: 48px; margin-bottom: 18px; }
+        .gate-inner h2 {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+        .gate-sub {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--ink-light);
+            margin-bottom: 20px;
+        }
+        .gate-inner p {
+            font-size: 14px;
+            color: var(--ink-mid);
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+        #gateSignInBtn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 19px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        #gateSignInBtn:hover { background: var(--accent-dk); }
+        #gateError {
+            display: none;
+            margin-top: 14px;
+            padding: 12px;
+            background: #fef2f2;
+            color: #991b1b;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* ── Company label ── */
+        #companyLabel {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            color: var(--ink-light);
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ACCESS GATE -->
+<div id="accessGate" style="position:fixed;inset:0;z-index:9999;background:#0f1117;display:flex;align-items:center;justify-content:center;padding:20px;">
+    <div class="gate-inner">
+        <!-- Bow & arrow SVG icon -->
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 52 L52 12" stroke="#1a56db" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M8 32 Q32 8 56 8" stroke="#0f1117" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M8 32 Q8 56 32 56" stroke="#0f1117" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M8 32 Q18 14 36 10" stroke="#3d4252" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M8 32 Q10 50 28 54" stroke="#3d4252" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <line x1="12" y1="52" x2="56" y2="8" stroke="#1a56db" stroke-width="2" stroke-linecap="round"/>
+            <polygon points="56,8 50,12 54,18" fill="#1a56db"/>
+            <line x1="12" y1="52" x2="16" y2="44" stroke="#7c8296" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="12" y1="52" x2="20" y2="48" stroke="#7c8296" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <h2>Ullr System</h2>
+        <p class="gate-sub">Delivery Tracker</p>
+        <p>Sign in with your authorised Google account to continue.</p>
+        <button id="gateSignInBtn">Sign in with Google</button>
+        <div id="gateError"></div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- ── APP HEADER ── -->
+    <div class="app-header" style="margin:0 -16px;padding-left:20px;padding-right:20px;position:sticky;top:0;">
+        <div class="app-header-logo-wrap">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <line x1="10" y1="54" x2="54" y2="10" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M6 32 Q30 6 58 6" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M6 32 Q6 58 32 58" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <polygon points="54,10 48,14 52,20" fill="white"/>
+                <line x1="10" y1="54" x2="14" y2="46" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="10" y1="54" x2="18" y2="50" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="app-header-text">
+            <h1>Ullr System</h1>
+            <span class="subtitle">Delivery Tracker</span>
+        </div>
+        <div class="header-count-badge">
+            <span class="num" id="deliveryCount">0</span>
+            <span class="lbl">Since&nbsp;Upload</span>
+        </div>
+    </div>
+
+    <p id="companyLabel" style="margin-top:12px;">Capture deliveries with photo &amp; GPS</p>
+
+    <div class="google-status" id="googleStatus" style="margin-top:8px;">
+        <span class="google-disconnected">📴 Not connected to Google Drive</span>
+    </div>
+
+    <div class="success-message" id="successMsg">Delivery saved successfully! ✓</div>
+    <div class="error-message" id="errorMsg">Please fill in all fields and take a photo</div>
+    <div class="upload-progress" id="uploadProgress">
+        <div>Uploading to Google Drive...</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div id="progressText" style="margin-top: 8px; font-size: 12px; color: #6b7280;"></div>
+    </div>
+
+    <div class="section" style="margin-top:16px;">
+        <label for="orderNumber">Order Number</label>
+        <input type="text" id="orderNumber" placeholder="e.g., 12" autofocus>
+    </div>
+
+    <div class="camera-section">
+        <button id="cameraBtn">📸 Take Photo</button>
+        <input type="file" id="camera-input" accept="image/*" capture="environment">
+        <div class="preview hidden" id="previewSection">
+            <img id="preview-img" alt="Photo preview">
+        </div>
+        <div class="gps-info hidden" id="gpsInfo">
+            📍 GPS: <span id="gpsCoords">Waiting...</span>
+        </div>
+    </div>
+
+    <button id="saveBtn" disabled>Save Delivery</button>
+
+    <div class="action-buttons">
+        <button class="btn btn-secondary" id="optionsBtn">⚙️ Options</button>
+    </div>
+
+    <!-- Options popup -->
+    <div id="optionsOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:flex-end;justify-content:center;">
+        <div style="background:white;border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;box-shadow:0 -4px 24px rgba(0,0,0,0.15);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <span class="options-title">Options</span>
+                <button id="optionsCloseBtn">✕</button>
+            </div>
+            <div style="display:grid;gap:10px;">
+                <button class="btn btn-drive hidden" id="signInBtn">🔐 Sign in with Google</button>
+                <button class="btn btn-success hidden" id="uploadDriveBtn">☁️ Upload to Google Drive</button>
+                <button class="btn btn-primary" id="exportBtn">📊 Export to Excel</button>
+                <button class="btn btn-secondary" id="viewBtn">👁️ View All</button>
+                <button class="btn btn-secondary" id="signOutBtn" style="background:#fee2e2;color:#991b1b;">🚪 Sign Out</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="deliveries-list hidden" id="deliveriesList"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<script>
+    // Users are now managed in Apps Script — no user data in this file.
+
+    const CLIENT_ID = '748854288515-9f4gpar0877eca3uteg501tr88qn2fkf.apps.googleusercontent.com';
+    const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email';
+
+    let tokenClient;
+    let accessToken    = null;
+    let gapiInited     = false;
+    let currentUser    = null;
+    let driveFolderName = 'Delivery Photos';
+
+    let currentDelivery = {
+        orderNumber: '',
+        photo: null,
+        photoName: '',
+        latitude: null,
+        longitude: null,
+        timestamp: null
+    };
+
+    function resetForm() {
+        currentDelivery = {
+            orderNumber: '',
+            photo: null,
+            photoName: '',
+            latitude: null,
+            longitude: null,
+            timestamp: null
+        };
+        document.getElementById('orderNumber').value = '';
+        const cameraInput = document.getElementById('camera-input');
+        cameraInput.removeEventListener('change', handlePhotoCapture);
+        const newInput = cameraInput.cloneNode(true);
+        cameraInput.parentNode.replaceChild(newInput, cameraInput);
+        newInput.addEventListener('change', handlePhotoCapture);
+        document.getElementById('previewSection').classList.add('hidden');
+        document.getElementById('preview-img').src = '';
+        document.getElementById('gpsInfo').classList.add('hidden');
+        document.getElementById('gpsCoords').textContent = 'Waiting...';
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.disabled = true;
+        saveBtn.style.opacity = '0.5';
+        saveBtn.style.cursor = 'not-allowed';
+    }
+
+    function gapiLoaded() {
+        gapi.load('client', initializeGapiClient);
+    }
+
+    async function initializeGapiClient() {
+        await gapi.client.init({
+            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+        });
+        gapiInited = true;
+    }
+
+    function gisLoaded() {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: SCOPES,
+            callback: handleTokenResponse,
+        });
+        const session = loadSession();
+        if (session) {
+            applySession(session.email, session.company, session.token, session.name, session.label);
+            return;
+        }
+        document.getElementById('gateSignInBtn').addEventListener('click', () => {
+            if (!tokenClient) {
+                showGateError('Google API not loaded yet — please wait a moment and try again.');
+                return;
+            }
+            tokenClient.requestAccessToken({ prompt: 'select_account' });
+        });
+        document.getElementById('signInBtn').addEventListener('click', () => {
+            if (!tokenClient) return;
+            tokenClient.requestAccessToken({ prompt: 'select_account' });
+        });
+    }
+
+    function saveSession(email, company, token, name, label) {
+        const session = { email, company, token, name, label, expiry: Date.now() + 7 * 24 * 60 * 60 * 1000 };
+        localStorage.setItem('deliveryTrackerSession', JSON.stringify(session));
+    }
+
+    function loadSession() {
+        try {
+            const raw = localStorage.getItem('deliveryTrackerSession');
+            if (!raw) return null;
+            const session = JSON.parse(raw);
+            if (Date.now() > session.expiry) { localStorage.removeItem('deliveryTrackerSession'); return null; }
+            return session;
+        } catch (e) { return null; }
+    }
+
+    function clearSession() { localStorage.removeItem('deliveryTrackerSession'); }
+
+    function applySession(email, company, token, name, label) {
+        accessToken = token;
+        currentUser = { email: email, company: company, name: name };
+        document.getElementById('accessGate').style.display = 'none';
+        document.getElementById('companyLabel').textContent = label + ' — logged in as ' + email;
+        updateGoogleStatus(true);
+        updateDeliveryCount();
+        return true;
+    }
+
+    async function handleTokenResponse(tokenResponse) {
+        if (tokenResponse.error) { showGateError('Sign-in failed: ' + tokenResponse.error); return; }
+        accessToken = tokenResponse.access_token;
+        try {
+            // Get email from Google
+            const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: 'Bearer ' + accessToken } });
+            const info  = await resp.json();
+            const email = (info.email || '').toLowerCase().trim();
+
+            // Verify against the user list in Apps Script
+            showGateError('Verifying access...');
+            const verifyResp = await fetch(PROXY_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'verifyUser', email: email })
+            });
+            const user = await verifyResp.json();
+
+            if (!user.approved) {
+                accessToken = null;
+                showGateError('Access denied. This account (' + email + ') is not authorised. Please contact your administrator.');
+                return;
+            }
+
+            saveSession(email, user.company, accessToken, user.name, user.label);
+            applySession(email, user.company, accessToken, user.name, user.label);
+        } catch (err) { showGateError('Could not verify your account. Please try again.'); console.error(err); }
+    }
+
+    function showGateError(msg) {
+        const el = document.getElementById('gateError');
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+
+    function updateGoogleStatus(connected) {
+        const statusEl = document.getElementById('googleStatus');
+        const uploadBtn = document.getElementById('uploadDriveBtn');
+        const signInBtn = document.getElementById('signInBtn');
+        if (connected) {
+            statusEl.innerHTML = '<span class="google-connected">✅ Connected to Google Drive</span>';
+            uploadBtn.classList.remove('hidden');
+            signInBtn.classList.add('hidden');
+        } else {
+            statusEl.innerHTML = '<span class="google-disconnected">📴 Not connected to Google Drive</span>';
+            uploadBtn.classList.add('hidden');
+            signInBtn.classList.remove('hidden');
+        }
+    }
+
+    const optionsOverlay = document.getElementById('optionsOverlay');
+    document.getElementById('optionsBtn').addEventListener('click', () => { optionsOverlay.style.display = 'flex'; });
+    document.getElementById('optionsCloseBtn').addEventListener('click', () => { optionsOverlay.style.display = 'none'; });
+    optionsOverlay.addEventListener('click', (e) => { if (e.target === optionsOverlay) optionsOverlay.style.display = 'none'; });
+
+    document.getElementById('signOutBtn').addEventListener('click', () => {
+        if (confirm('Are you sure you want to sign out?')) { clearSession(); accessToken = null; currentUser = null; location.reload(); }
+    });
+
+    // ── IndexedDB ──────────────────────────────────────────────────────
+    const DB_NAME = 'DeliveryTrackerDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'deliveries';
+    let db = null;
+
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            if (db) { resolve(db); return; }
+            const req = indexedDB.open(DB_NAME, DB_VERSION);
+            req.onupgradeneeded = e => { e.target.result.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true }); };
+            req.onsuccess = e => { db = e.target.result; resolve(db); };
+            req.onerror = e => reject(e.target.error);
+        });
+    }
+
+    async function getDeliveries() {
+        const database = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = database.transaction(STORE_NAME, 'readonly');
+            const req = tx.objectStore(STORE_NAME).getAll();
+            req.onsuccess = e => {
+                const company = currentUser ? currentUser.company : null;
+                const all = e.target.result;
+                resolve(company ? all.filter(d => d.company === company) : all);
+            };
+            req.onerror = e => reject(e.target.error);
+        });
+    }
+
+    async function addDelivery(delivery) {
+        delivery.company = currentUser ? currentUser.company : 'unknown';
+        const database = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = database.transaction(STORE_NAME, 'readwrite');
+            const req = tx.objectStore(STORE_NAME).add(delivery);
+            req.onsuccess = () => resolve();
+            req.onerror = e => reject(e.target.error);
+        });
+    }
+
+    async function updateDelivery(id, changes) {
+        const database = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = database.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            const getReq = store.get(id);
+            getReq.onsuccess = e => {
+                const updated = Object.assign({}, e.target.result, changes);
+                store.put(updated).onsuccess = () => resolve();
+            };
+            getReq.onerror = e => reject(e.target.error);
+        });
+    }
+
+    async function deleteDelivery(id) {
+        const database = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = database.transaction(STORE_NAME, 'readwrite');
+            tx.objectStore(STORE_NAME).delete(id).onsuccess = () => resolve();
+            tx.onerror = e => reject(e.target.error);
+        });
+    }
+
+    async function purgeOldDeliveries() {
+        const database = await openDB();
+        const all = await new Promise((resolve, reject) => {
+            const tx = database.transaction(STORE_NAME, 'readonly');
+            const req = tx.objectStore(STORE_NAME).getAll();
+            req.onsuccess = e => resolve(e.target.result);
+            req.onerror = e => reject(e.target.error);
+        });
+        const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        for (const d of all) {
+            if (new Date(d.dateTime).getTime() < cutoff) { await deleteDelivery(d.id); }
+        }
+    }
+
+    async function updateDeliveryCount() {
+        const deliveries = await getDeliveries();
+        // Count deliveries added since the last upload (or all time if never uploaded)
+        const lastUpload = localStorage.getItem('lastUploadTime_' + (currentUser?.company || 'default'));
+        const sinceDate  = lastUpload ? new Date(lastUpload) : new Date(0);
+        const count = deliveries.filter(d => {
+            const ts = d.timestamp || d.dateTime;
+            return new Date(ts) >= sinceDate;
+        }).length;
+        document.getElementById('deliveryCount').textContent = count;
+    }
+
+    // ── GPS ────────────────────────────────────────────────────────────
+    function getCurrentPosition() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) { reject(new Error('Geolocation not supported')); return; }
+            navigator.geolocation.getCurrentPosition(
+                position => resolve(position),
+                error => reject(error),
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        });
+    }
+
+    function formatDate(date) {
+        const year = String(date.getFullYear()).slice(-2);
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${day}-${month}-${year}_${hours}-${minutes}-${seconds}`;
+    }
+
+    function showMessage(type, text) {
+        const successMsg = document.getElementById('successMsg');
+        const errorMsg = document.getElementById('errorMsg');
+        if (type === 'success') {
+            if (text) successMsg.textContent = text;
+            successMsg.style.display = 'block';
+            errorMsg.style.display = 'none';
+            setTimeout(() => successMsg.style.display = 'none', 3000);
+        } else {
+            if (text) errorMsg.textContent = text;
+            errorMsg.style.display = 'block';
+            successMsg.style.display = 'none';
+            setTimeout(() => errorMsg.style.display = 'none', 3000);
+        }
+    }
+
+    async function handlePhotoCapture(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const compressImage = (file) => new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const MAX_DIM = 1200;
+                    let { width, height } = img;
+                    if (width > MAX_DIM || height > MAX_DIM) {
+                        if (width > height) { height = Math.round(height * MAX_DIM / width); width = MAX_DIM; }
+                        else { width = Math.round(width * MAX_DIM / height); height = MAX_DIM; }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width; canvas.height = height;
+                    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.75));
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+        const compressedDataUrl = await compressImage(file);
+        document.getElementById('preview-img').src = compressedDataUrl;
+        document.getElementById('previewSection').classList.remove('hidden');
+        currentDelivery.photo = compressedDataUrl;
+        checkFormComplete();
+        try {
+            document.getElementById('gpsInfo').classList.remove('hidden');
+            document.getElementById('gpsCoords').textContent = 'Getting location...';
+            const position = await getCurrentPosition();
+            currentDelivery.latitude = position.coords.latitude;
+            currentDelivery.longitude = position.coords.longitude;
+            document.getElementById('gpsCoords').textContent =
+                `${currentDelivery.latitude.toFixed(6)}, ${currentDelivery.longitude.toFixed(6)}`;
+            checkFormComplete();
+        } catch (error) {
+            document.getElementById('gpsCoords').textContent = 'GPS unavailable';
+            showMessage('error', 'Could not get GPS location. Photo saved without GPS.');
+        }
+    }
+
+    document.getElementById('camera-input').addEventListener('change', handlePhotoCapture);
+
+    document.getElementById('cameraBtn').addEventListener('click', function() {
+        document.getElementById('camera-input').click();
+    });
+
+    function checkFormComplete() {
+        const orderNumber = document.getElementById('orderNumber').value.trim();
+        const hasPhoto = currentDelivery.photo !== null;
+        const saveBtn = document.getElementById('saveBtn');
+        if (orderNumber && hasPhoto) {
+            saveBtn.disabled = false;
+            saveBtn.style.opacity = '1';
+            saveBtn.style.cursor = 'pointer';
+        } else {
+            saveBtn.disabled = true;
+            saveBtn.style.opacity = '0.5';
+            saveBtn.style.cursor = 'not-allowed';
+        }
+    }
+
+    document.getElementById('orderNumber').addEventListener('input', checkFormComplete);
+
+    async function saveDelivery() {
+        const orderNumber = document.getElementById('orderNumber').value.trim();
+        if (!orderNumber || !currentDelivery.photo) {
+            showMessage('error', 'Please fill in all fields and take a photo');
+            return;
+        }
+        const now = new Date();
+        const photoName = `${orderNumber}_${formatDate(now)}.jpg`;
+        const delivery = {
+            orderNumber: orderNumber,
+            photo: currentDelivery.photo,
+            photoName: photoName,
+            latitude: currentDelivery.latitude,
+            longitude: currentDelivery.longitude,
+            timestamp: now.toISOString(),
+            dateTime: now.toLocaleString(),
+            uploaded: false
+        };
+        await addDelivery(delivery);
+        showMessage('success', `Delivery #${orderNumber} saved! ✓`);
+        setTimeout(() => { resetForm(); updateDeliveryCount(); }, 1200);
+    }
+
+    document.getElementById('saveBtn').onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        saveDelivery();
+    };
+
+    // ── Upload to Drive ────────────────────────────────────────────────
+    document.getElementById('uploadDriveBtn').addEventListener('click', async () => {
+        const allDeliveries = await getDeliveries();
+        const deliveries = allDeliveries.filter(d => !d.uploaded);
+        if (deliveries.length === 0) { showMessage('error', 'No new deliveries to upload'); return; }
+        const progressEl   = document.getElementById('uploadProgress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        progressEl.style.display = 'block';
+        try {
+            progressText.textContent = 'Connecting to Drive...';
+            const folderId   = await getCompanyFolderId();
+            const allForExcel = await getDeliveries();
+            const photoLinks  = {};
+            let uploaded = 0;
+            for (const delivery of deliveries) {
+                progressText.textContent = `Uploading ${delivery.photoName}...`;
+                progressFill.style.width = `${(uploaded / deliveries.length) * 80}%`;
+                const result = await uploadPhotoToDrive(delivery, folderId);
+                if (result.id) { photoLinks[delivery.orderNumber] = `https://drive.google.com/file/d/${result.id}/view`; }
+                await deleteDelivery(delivery.id);
+                uploaded++;
+            }
+            progressText.textContent = 'Saving delivery log...';
+            progressFill.style.width = '90%';
+            await uploadExcelToDrive(allForExcel, folderId, photoLinks);
+            progressFill.style.width = '100%';
+            progressEl.style.display = 'none';
+            localStorage.setItem('lastUploadTime_' + (currentUser?.company || 'default'), new Date().toISOString());
+            updateDeliveryCount();
+            showMessage('success', `Successfully uploaded ${deliveries.length} deliveries to Google Drive! ✓`);
+        } catch (error) {
+            console.error('Upload error:', error);
+            progressEl.style.display = 'none';
+            const msg = error?.message || JSON.stringify(error) || 'Unknown error';
+            showMessage('error', 'Upload failed: ' + msg);
+        }
+    });
+
+    const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzN9FoAxNBpTWsv2jWlup2AbpbPD8dbZpHYAA6y_4Auq7clGl7eWx6dgRQGbUF05Hca/exec';
+
+    async function getCompanyFolderId() {
+        const companyName = currentUser.company;
+        const res = await fetch(PROXY_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'getFolder', companyName })
+        });
+        const json = await res.json();
+        if (!json.id) throw new Error('Could not get folder: ' + JSON.stringify(json));
+        return json.id;
+    }
+
+    async function uploadPhotoToDrive(delivery, folderId) {
+        const base64Data = delivery.photo.split(',')[1];
+        const res = await fetch(PROXY_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'uploadPhoto', folderId, base64Data, filename: delivery.photoName })
+        });
+        const json = await res.json();
+        if (!json.id) throw new Error('Photo upload failed: ' + JSON.stringify(json));
+        return json;
+    }
+
+    async function uploadExcelToDrive(deliveries, folderId, photoLinks = {}) {
+        const excelData = deliveries.map(d => ({
+            'Order Number'  : d.orderNumber,
+            'Date/Time'     : d.dateTime,
+            'GPS Link'      : d.latitude && d.longitude ? 'https://www.google.com/maps?q=' + d.latitude + ',' + d.longitude : 'N/A',
+            'Photo Filename': d.photoName,
+        }));
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(excelData);
+        ws['!cols'] = [ {wch:15}, {wch:20}, {wch:30}, {wch:30} ];
+        XLSX.utils.book_append_sheet(wb, ws, 'Deliveries');
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+        const today = new Date();
+        const weekNum = (() => {
+            const d = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        })();
+        const driverSlug = (currentUser && (currentUser.name || currentUser.email) || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const filename = driverSlug + '_week-' + weekNum + '-' + today.getFullYear() + '.xlsx';
+        const res = await fetch(PROXY_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'uploadExcel', folderId, base64Data: wbout, filename })
+        });
+        const json = await res.json();
+        if (!json.id) throw new Error('Excel upload failed: ' + JSON.stringify(json));
+        return json;
+    }
+
+        function base64ToBlob(base64, mimeType) {
+        const byteCharacters = atob(base64);
+        const byteArrays = [];
+        for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+            const slice = byteCharacters.slice(offset, offset + 512);
+            const byteNumbers = new Array(slice.length);
+            for (let i = 0; i < slice.length; i++) { byteNumbers[i] = slice.charCodeAt(i); }
+            byteArrays.push(new Uint8Array(byteNumbers));
+        }
+        return new Blob(byteArrays, { type: mimeType });
+    }
+
+    // ── Export to HTML + Excel (local) ─────────────────────────────────
+    document.getElementById('exportBtn').addEventListener('click', async () => {
+        const deliveries = await getDeliveries();
+        if (deliveries.length === 0) { showMessage('error', 'No deliveries to export'); return; }
+        showMessage('success', 'Building export, please wait...');
+        const excelData = deliveries.map(d => ({
+            'Order Number' : d.orderNumber,
+            'Date'         : d.dateTime ? d.dateTime.split(',')[0].trim() : 'N/A',
+            'Time'         : d.dateTime ? (d.dateTime.split(',')[1]?.trim() ?? 'N/A') : 'N/A',
+            'Latitude'     : d.latitude  ?? 'N/A',
+            'Longitude'    : d.longitude ?? 'N/A',
+            'GPS Link'     : d.latitude && d.longitude ? `https://www.google.com/maps?q=${d.latitude},${d.longitude}` : 'N/A',
+            'Photo'        : ''
+        }));
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(excelData);
+        ws['!cols'] = [{wch:15},{wch:14},{wch:10},{wch:12},{wch:12},{wch:50},{wch:18}];
+        ws['!rows'] = [{hpt:20}];
+        for (let i = 0; i < deliveries.length; i++) { ws['!rows'].push({hpt:75}); }
+        XLSX.utils.book_append_sheet(wb, ws, 'Deliveries');
+        let tableRows = deliveries.map((d, i) => {
+            const gpsLink = d.latitude && d.longitude ? `<a href="https://www.google.com/maps?q=${d.latitude},${d.longitude}" target="_blank">📍 ${Number(d.latitude).toFixed(6)}, ${Number(d.longitude).toFixed(6)}</a>` : 'N/A';
+            const datePart = d.dateTime ? d.dateTime.split(',')[0].trim() : 'N/A';
+            const timePart = d.dateTime ? (d.dateTime.split(',')[1]?.trim() ?? 'N/A') : 'N/A';
+            const photoCell = d.photo ? `<img src="${d.photo}" style="height:90px;width:auto;border-radius:4px;">` : 'No photo';
+            const rowBg = i % 2 === 0 ? '#ffffff' : '#f3f4f6';
+            return `<tr style="background:${rowBg}"><td>${d.orderNumber}</td><td>${datePart}</td><td>${timePart}</td><td>${gpsLink}</td><td style="padding:4px;">${photoCell}</td></tr>`;
+        }).join('');
+        const htmlReport = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Delivery Report</title><style>body{font-family:Arial,sans-serif;padding:20px;background:#f9fafb;}h1{color:#374151;margin-bottom:16px;}p{color:#6b7280;margin-bottom:20px;font-size:13px;}table{border-collapse:collapse;width:100%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.1);border-radius:8px;overflow:hidden;}th{background:#1a56db;color:white;padding:10px 12px;text-align:left;font-size:13px;}td{padding:8px 12px;border-bottom:1px solid #e5e7eb;font-size:13px;vertical-align:middle;}tr:last-child td{border-bottom:none;}a{color:#1a56db;text-decoration:none;}a:hover{text-decoration:underline;}</style></head><body><h1>📦 Delivery Report</h1><p>Generated: ${new Date().toLocaleString()} | Total: ${deliveries.length}</p><table><thead><tr><th>Order #</th><th>Date</th><th>Time</th><th>GPS Location</th><th>Photo</th></tr></thead><tbody>${tableRows}</tbody></table></body></html>`;
+        const htmlBlob = new Blob([htmlReport], { type: 'text/html' });
+        const htmlUrl  = URL.createObjectURL(htmlBlob);
+        const htmlLink = document.createElement('a');
+        htmlLink.href = htmlUrl; htmlLink.download = `delivery_report_${formatDate(new Date()).split('_')[0]}.html`;
+        document.body.appendChild(htmlLink); htmlLink.click(); document.body.removeChild(htmlLink);
+        setTimeout(() => URL.revokeObjectURL(htmlUrl), 5000);
+        setTimeout(() => { XLSX.writeFile(wb, `deliveries_${formatDate(new Date()).split('_')[0]}.xlsx`); }, 800);
+        deliveries.forEach((d, i) => {
+            if (!d.photo) return;
+            setTimeout(() => {
+                const link = document.createElement('a');
+                link.href = d.photo; link.download = d.photoName;
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            }, 1500 + i * 600);
+        });
+        showMessage('success', `Exporting ${deliveries.length} deliveries — check your downloads! ✓`);
+    });
+
+    // ── View all ───────────────────────────────────────────────────────
+    document.getElementById('viewBtn').addEventListener('click', async () => {
+        const deliveries = await getDeliveries();
+        const listContainer = document.getElementById('deliveriesList');
+        if (deliveries.length === 0) { showMessage('error', 'No deliveries yet'); return; }
+        listContainer.innerHTML = '<h3 style="padding:14px 16px;font-family:\'Barlow Condensed\',sans-serif;font-size:16px;font-weight:900;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #e2e5ef;">Recent Deliveries</h3>';
+        deliveries.slice().reverse().forEach(d => {
+            const item = document.createElement('div');
+            item.className = 'delivery-item';
+            item.innerHTML = `<div><div class="delivery-order">Order #${d.orderNumber} ${d.uploaded ? '☁️' : '📱'}</div><div class="delivery-time">${d.dateTime}</div><div style="font-size:11px;color:#7c8296;margin-top:2px;">${d.latitude && d.longitude ? `📍 ${d.latitude.toFixed(4)}, ${d.longitude.toFixed(4)}` : 'No GPS'}</div></div>`;
+            listContainer.appendChild(item);
+        });
+        listContainer.classList.toggle('hidden');
+    });
+
+    // ── Init ───────────────────────────────────────────────────────────
+    function loadGapi() {
+        const script = document.createElement('script');
+        script.src = 'https://apis.google.com/js/api.js';
+        script.onload = gapiLoaded;
+        document.head.appendChild(script);
+    }
+
+    function waitForGIS(attemptsLeft) {
+        if (typeof google !== 'undefined' && google.accounts) {
+            gisLoaded();
+        } else if (attemptsLeft > 0) {
+            setTimeout(() => waitForGIS(attemptsLeft - 1), 500);
+        } else {
+            console.error('Google Identity Services failed to load.');
+            const el = document.getElementById('gateError');
+            if (el) { el.textContent = 'Google sign-in could not load. Please check your connection and refresh.'; el.style.display = 'block'; }
+        }
+    }
+
+    updateDeliveryCount();
+    purgeOldDeliveries();
+    loadGapi();
+    window.addEventListener('load', () => waitForGIS(10));
+</script>
+</body>
+</html>
